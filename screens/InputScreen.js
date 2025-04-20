@@ -87,24 +87,34 @@ export default function InputScreen({ navigation }) {
   };
 
   const renderStyleOption = (style, index) => (
-    <TouchableOpacity
-      key={style.id}
-      style={[
-        styles.styleOption,
-        selectedStyle === style.id && styles.selectedStyle,
-      ]}
-      onPress={() => setSelectedStyle(style.id)}
-    >
-      {loading ? (
-        <ActivityIndicator color="#8B5CF6" />
-      ) : (
-        <Image
-          source={getImageSource(images[index])}
-          style={styles.styleImage}
-        />
-      )}
-      <Text style={styles.styleText}>{style.name}</Text>
-    </TouchableOpacity>
+    <View>
+      <TouchableOpacity
+        key={style.id}
+        style={[
+          styles.styleOption,
+          selectedStyle === style.id && styles.selectedStyle,
+        ]}
+        onPress={() => setSelectedStyle(style.id)}
+      >
+        {loading ? (
+          <ActivityIndicator color="#8B5CF6" />
+        ) : (
+          <Image
+            source={getImageSource(images[index])}
+            style={styles.styleImage}
+            resizeMode="cover"
+          />
+        )}
+      </TouchableOpacity>
+      <Text
+        style={[
+          styles.styleText,
+          selectedStyle === style.id && { color: "#fff" },
+        ]}
+      >
+        {style.name}
+      </Text>
+    </View>
   );
 
   const renderStatus = () => {
@@ -430,15 +440,14 @@ const styles = StyleSheet.create({
   },
   selectedStyle: {
     borderWidth: 2,
-    borderColor: "#8B5CF6",
+    borderColor: "#fff",
   },
   styleImage: {
     width: "100%",
-    height: "70%",
-    resizeMode: "cover",
+    height: "100%",
   },
   styleText: {
-    color: "#FFFFFF",
+    color: "rgba(113, 113, 122, 1)",
     fontSize: 12,
     textAlign: "center",
     marginTop: 8,
