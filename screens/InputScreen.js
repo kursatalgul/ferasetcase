@@ -1,6 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, SafeAreaView, Dimensions, Image, ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
-import { fetchImagesFromFirebase, getImageSource } from "../firebase/imageService";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  Dimensions,
+  Image,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  ImageBackground,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
+import {
+  fetchImagesFromFirebase,
+  getImageSource,
+} from "../firebase/imageService";
+import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
 
 export default function InputScreen({ navigation }) {
   const [prompt, setPrompt] = useState("");
@@ -19,7 +40,7 @@ export default function InputScreen({ navigation }) {
         const imageUrls = await fetchImagesFromFirebase();
         setImages(imageUrls);
       } catch (error) {
-        console.error('Error loading images:', error);
+        console.error("Error loading images:", error);
       } finally {
         setLoading(false);
       }
@@ -46,7 +67,7 @@ export default function InputScreen({ navigation }) {
     }
 
     setIsCreating(true);
-    
+
     setTimeout(() => {
       setIsCreating(false);
       setIsSuccess(true);
@@ -58,8 +79,10 @@ export default function InputScreen({ navigation }) {
     setShowReadyButton(false);
     navigation.navigate("OutputScreen", {
       prompt,
-      selectedStyle: logoStyles.find(style => style.id === selectedStyle)?.name,
-      imageUrl: images[logoStyles.findIndex(style => style.id === selectedStyle)]
+      selectedStyle: logoStyles.find((style) => style.id === selectedStyle)
+        ?.name,
+      imageUrl:
+        images[logoStyles.findIndex((style) => style.id === selectedStyle)],
     });
   };
 
@@ -75,8 +98,8 @@ export default function InputScreen({ navigation }) {
       {loading ? (
         <ActivityIndicator color="#8B5CF6" />
       ) : (
-        <Image 
-          source={getImageSource(images[index])} 
+        <Image
+          source={getImageSource(images[index])}
           style={styles.styleImage}
         />
       )}
@@ -87,14 +110,38 @@ export default function InputScreen({ navigation }) {
   const renderStatus = () => {
     if (isError) {
       return (
-        <TouchableOpacity 
-          style={[styles.statusContainer, styles.errorContainer]}
+        <TouchableOpacity
+          style={[styles.statusContainer, { backgroundColor: "white" }]}
           onPress={() => setIsError(false)}
         >
-          <View style={[styles.statusIcon, styles.errorIcon]}>
-            <Text style={styles.errorIconText}>!</Text>
+          <View
+            style={{
+              width: "20%",
+              height: "100%",
+              justifyContent: "center",
+              alignItems: "center",
+              borderTopLeftRadius: 12,
+              borderBottomLeftRadius: 12,
+              backgroundColor: "rgba(239, 68, 68, 0.7)",
+            }}
+          >
+            <Image
+              source={require("../assets/images/warning.png")}
+              style={{ width: 28, height: 28 }}
+            />
           </View>
-          <View>
+          <View
+            style={{
+              paddingLeft: 12,
+              height: "100%",
+              width: "80%",
+              alignItems: "start",
+              justifyContent: "center",
+              backgroundColor: "rgba(239, 68, 68, 1)",
+              borderTopRightRadius: 12,
+              borderBottomRightRadius: 12,
+            }}
+          >
             <Text style={styles.statusTitle}>Oops, something went wrong!</Text>
             <Text style={styles.statusSubtitle}>Click to try again.</Text>
           </View>
@@ -104,28 +151,64 @@ export default function InputScreen({ navigation }) {
     if (isCreating) {
       return (
         <View style={styles.statusContainer}>
-          <ActivityIndicator color="#FFFFFF" style={styles.statusIcon} />
-          <View>
+          <View
+            style={{
+              width: "20%",
+
+              alignItems: "center",
+            }}
+          >
+            <ActivityIndicator color="#FFFFFF" style={styles.statusIcon} />
+          </View>
+          <LinearGradient
+            style={{
+              width: "80%",
+              padding: 16,
+              borderTopRightRadius: 16,
+              borderBottomRightRadius: 16,
+            }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            locations={[0, 1]}
+            colors={["rgba(41, 56, 220, 0.1)", "rgba(148, 61, 255, 0.1)"]}
+          >
             <Text style={styles.statusTitle}>Creating Your Design...</Text>
             <Text style={styles.statusSubtitle}>Ready in 2 minutes</Text>
-          </View>
+          </LinearGradient>
         </View>
       );
     }
     if (showReadyButton) {
       return (
-        <TouchableOpacity 
-          style={[styles.statusContainer, styles.readyContainer]}
+        <TouchableOpacity
+          style={[styles.statusContainer]}
           onPress={handleReadyButtonPress}
         >
-          <Image 
-            source={getImageSource(images[logoStyles.findIndex(style => style.id === selectedStyle)])}
-            style={styles.statusIcon}
-          />
-          <View>
-            <Text style={styles.statusTitle}>Your Design is Ready!</Text>
-            <Text style={styles.statusSubtitle}>Tap to see it.</Text>
+          <View style={{ width: "20%", alignItems: "center" }}>
+            <Image
+              source={require("../assets/images/mock.png")}
+              resizeMode="cover"
+              style={styles.statusIcon}
+            />
           </View>
+
+          <LinearGradient
+            style={{
+              width: "80%",
+              padding: 16,
+              borderTopRightRadius: 16,
+              borderBottomRightRadius: 16,
+            }}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            locations={[0, 1]}
+            colors={["rgba(41, 56, 220, 1)", "rgba(148, 61, 255, 1)"]}
+          >
+            <View>
+              <Text style={styles.statusTitle}>Your Design is Ready!</Text>
+              <Text style={styles.statusSubtitle}>Tap to see it.</Text>
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
       );
     }
@@ -134,95 +217,161 @@ export default function InputScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+      <StatusBar backgroundColor="#000" style="light" />
+      <ImageBackground
+        source={require("../assets/images/bgradient.png")}
+        style={styles.background}
+        resizeMode="stretch"
       >
-        {renderStatus()}
-        
-        <ScrollView bounces={false} style={styles.scrollView}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>AI Logo</Text>
-          </View>
-
-          <View style={styles.promptHeader}>
-            <Text style={styles.promptTitle}>Enter Your Prompt</Text>
-            <TouchableOpacity style={styles.surpriseButton}>
-              <Text style={styles.surpriseText}>Surprise me</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="A blue lion logo reading 'HEXA' in bold letters"
-              placeholderTextColor="#666666"
-              multiline
-              value={prompt}
-              onChangeText={(text) => {
-                setPrompt(text);
-                setIsError(false);
+        <ScrollView
+          scrollEnabled={false}
+          contentContainerStyle={{
+            flex: 1,
+            justifyContent: "space-between",
+          }}
+          style={styles.scrollView}
+        >
+          <View
+            style={{
+              width: "100%",
+            }}
+          >
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>AI Logo</Text>
+            </View>
+            {renderStatus()}
+            <View
+              style={{
+                width: "100%",
+                rowGap: 12,
+                paddingHorizontal: 24,
               }}
-            />
-            <Text style={styles.charCount}>{prompt.length}/500</Text>
-          </View>
+            >
+              <View style={styles.promptHeader}>
+                <Text style={styles.promptTitle}>Enter Your Prompt</Text>
+                <TouchableOpacity style={styles.surpriseButton}>
+                  <Image
+                    style={{ width: 15, height: 15, marginRight: 8 }}
+                    source={require("../assets/images/suprise.png")}
+                  />
+                  <Text style={styles.surpriseText}>Surprise me</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.inputContainer}>
+                <LinearGradient
+                  style={{
+                    width: "100%",
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    borderRadius: 16,
+                  }}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  locations={[0, 1]}
+                  colors={["rgba(41, 56, 220, 0.1)", "rgba(148, 61, 255, 0.1)"]}
+                >
+                  <TextInput
+                    style={styles.input}
+                    placeholder="A blue lion logo reading 'HEXA' in bold letters"
+                    placeholderTextColor="#666666"
+                    multiline
+                    value={prompt}
+                    onChangeText={(text) => {
+                      setPrompt(text);
+                      setIsError(false);
+                    }}
+                  />
+                  <Text style={styles.charCount}>{prompt.length}/500</Text>
+                </LinearGradient>
+              </View>
+            </View>
 
-          <View style={styles.stylesSection}>
-            <Text style={styles.stylesTitle}>Logo Styles</Text>
-            <View style={styles.styleOptions}>
-              {logoStyles.map((style, index) => renderStyleOption(style, index))}
+            <View style={styles.stylesSection}>
+              <Text style={styles.stylesTitle}>Logo Styles</Text>
+              <ScrollView horizontal style={styles.styleOptions}>
+                {logoStyles.map((style, index) =>
+                  renderStyleOption(style, index)
+                )}
+              </ScrollView>
             </View>
           </View>
-          
-          <View style={styles.spacer} />
+          <View
+            style={{
+              paddingHorizontal: 24,
+              width: "100%",
+            }}
+          >
+            <LinearGradient
+              style={{
+                width: "100%",
+                borderRadius: 50,
+              }}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              locations={[0, 1]}
+              colors={["rgba(41, 56, 220, 1)", "rgba(148, 61, 255, 1)"]}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.createButton,
+                  (!prompt.trim() || isCreating || showReadyButton) &&
+                    styles.createButtonDisabled,
+                ]}
+                onPress={handleCreate}
+                disabled={isCreating || showReadyButton}
+              >
+                <Text style={styles.createButtonText}>Create</Text>
+                <Image source={require("../assets/images/elements.png")} />
+              </TouchableOpacity>
+            </LinearGradient>
+          </View>
         </ScrollView>
-
-        <TouchableOpacity 
-          style={[
-            styles.createButton,
-            (!prompt.trim() || isCreating || showReadyButton) && styles.createButtonDisabled
-          ]}
-          onPress={handleCreate}
-          disabled={!prompt.trim() || isCreating || showReadyButton}
-        >
-          <Text style={styles.createButtonText}>Create</Text>
-        </TouchableOpacity>
-      </KeyboardAvoidingView>
+      </ImageBackground>
     </SafeAreaView>
   );
 }
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#000000",
+    height: height,
+    width: "100%",
+    backgroundColor: "#000",
+  },
+  background: {
+    zIndex: 0,
+    width: "100%",
+    height: "100%",
   },
   keyboardAvoidingView: {
     flex: 1,
   },
   scrollView: {
-    flex: 1,
-    padding: 20,
+    width: "100%",
+    minHeight: "100%",
+    paddingVertical: 24,
+    position: "relative",
   },
   spacer: {
     height: 100,
   },
   header: {
-    marginTop: 20,
-    marginBottom: 30,
+    paddingTop: 12,
+    paddingBottom: 12,
+    alignItems: "center",
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "600",
+    fontSize: 17,
+    fontWeight: "800",
+    lineHeight: 22,
     color: "#FFFFFF",
   },
   promptHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
   },
   promptTitle: {
     fontSize: 20,
@@ -234,13 +383,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   surpriseText: {
-    color: "#8B5CF6",
+    color: "rgba(250, 250, 250, 1)",
     fontSize: 16,
   },
   inputContainer: {
-    backgroundColor: "#1E1E1E",
-    borderRadius: 12,
-    padding: 16,
+    width: "100%",
+    backgroundColor: "rgba(39, 39, 42, 1)",
+    borderRadius: 16,
     marginBottom: 24,
   },
   input: {
@@ -256,7 +405,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   stylesSection: {
-    marginBottom: 24,
+    width: "100%",
+    paddingLeft: 24,
   },
   stylesTitle: {
     fontSize: 20,
@@ -265,8 +415,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   styleOptions: {
+    width: "100%",
     flexDirection: "row",
-    justifyContent: "space-between",
   },
   styleOption: {
     width: (width - 60) / 4,
@@ -295,11 +445,13 @@ const styles = StyleSheet.create({
   },
   createButton: {
     backgroundColor: "#8B5CF6",
-    borderRadius: 12,
+    width: "100%",
+    borderRadius: 50,
     padding: 16,
     alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 40,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
   },
   createButtonDisabled: {
     backgroundColor: "#8B5CF680",
@@ -310,22 +462,20 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   statusContainer: {
+    height: 70,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1E1E1E",
     borderRadius: 12,
-    padding: 16,
     margin: 20,
-    marginBottom: 0,
+    marginBottom: 24,
   },
-  errorContainer: {
-    backgroundColor: "#FF6B6B",
-  },
+
   statusIcon: {
-    width: 40,
-    height: 40,
-    marginRight: 16,
-    borderRadius: 8,
+    width: "100%",
+    height: "100%",
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
   },
   errorIcon: {
     backgroundColor: "#FFFFFF",
@@ -336,6 +486,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#FF6B6B",
+    backgroundColor: "#Fff",
   },
   statusTitle: {
     color: "#FFFFFF",
@@ -343,7 +494,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   statusSubtitle: {
-    color: "#666666",
+    color: "#fff",
     fontSize: 14,
   },
   readyContainer: {
