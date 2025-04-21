@@ -20,6 +20,7 @@ import {
   fetchImagesFromFirebase,
   getImageSource,
 } from "../firebase/imageService";
+import { savePromptToFirebase } from "../firebase/promptService";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 
@@ -54,6 +55,7 @@ export default function InputScreen({ navigation }) {
     { id: 2, name: "Monogram" },
     { id: 3, name: "Abstract" },
     { id: 4, name: "Mascot" },
+
   ];
 
   const handleCreate = async () => {
@@ -67,6 +69,16 @@ export default function InputScreen({ navigation }) {
     }
 
     setIsCreating(true);
+
+    const selectedStyleName = logoStyles.find((style) => style.id === selectedStyle)?.name;
+
+    if (selectedStyleName) {
+      try {
+        await savePromptToFirebase(prompt, selectedStyleName);
+      } catch (error) {
+        console.error('Error saving prompt to Firebase:', error);
+      }
+    }
 
     setTimeout(() => {
       setIsCreating(false);
@@ -87,9 +99,8 @@ export default function InputScreen({ navigation }) {
   };
 
   const renderStyleOption = (style, index) => (
-    <View>
+    <View key={style.id}>
       <TouchableOpacity
-        key={style.id}
         style={[
           styles.styleOption,
           selectedStyle === style.id && styles.selectedStyle,
@@ -325,7 +336,7 @@ export default function InputScreen({ navigation }) {
                 style={[
                   styles.createButton,
                   (!prompt.trim() || isCreating || showReadyButton) &&
-                    styles.createButtonDisabled,
+                  styles.createButtonDisabled,
                 ]}
                 onPress={handleCreate}
                 disabled={isCreating || showReadyButton}
@@ -364,9 +375,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     position: "relative",
   },
-  spacer: {
-    height: 100,
-  },
+
   header: {
     paddingTop: 12,
     paddingBottom: 12,
